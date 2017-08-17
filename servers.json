@@ -1,0 +1,16 @@
+{
+	"srv1": {
+		"link": "srv1",
+		"name": "Сервер #1",
+		"user": "UserName",
+		"pass": "Password",
+		"host": "http://server1.company.com:9786"
+	},
+	"srv2": {
+		"link": "srv2",
+		"name": "Сервер #2",
+		"user": "UserName",
+		"pass": "Password",
+		"host": "http://server2.company.com:9786"
+	}
+}

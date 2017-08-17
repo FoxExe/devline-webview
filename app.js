@@ -5,31 +5,13 @@ var http = require('http');
 var url = require('url');
 var fs = require('fs');
 
-//ttp.globalAgent.maxSockets = 1000;
+var serversData = require('./servers.json');
 
 // Default size of thumbnails/preview
 var VideoWidth = 240;
 var VideoHeight = 200;
 
-const serversData = {
-	server1: {
-		link: 'server1',
-		name: 'Сервер №1',
-		user: 'UserName',
-		pass: 'Password',
-		host: 'http://video-1.company.com:9786'
-	},
-	server2: {
-		link: 'server2',
-		name: 'Сервер №2',
-		user: 'UserName',
-		pass: 'Password',
-		host: 'http://video-2.company.com:9786'
-	}
-};
-
-// MIME Types for file transfer
-const mimeType = {
+// MIME Types for file transferconst mimeType = {
 	'.ico': 'image/x-icon',
 	'.html': 'text/html',
 	'.js': 'text/javascript',
@@ -97,9 +79,15 @@ PrintWelcomePage = function (res) {
 };
 
 SendVideoStream = function (server, req, res, queryData) {
-	var link = `${server.host}${queryData.stream}?fps=${queryData.fps || '1'}`;
-	if (!queryData.original)
+	var link = `${server.host}${queryData.stream}`;
+	link += `?fps=${queryData.fps || '1'}`;
+	link += `&keep_aspect_ratio=${queryData.aspect || '1'}`;
+	if (!queryData.original) {
+		link += '&quality=30';
 		link += `&resolution=${queryData.width || VideoWidth}x${queryData.height || VideoHeight}`;
+	}
+	else
+		link += '&quality=85';
 
 	//console.log('[Stream] > Started ' + link);
 
@@ -111,7 +99,7 @@ SendVideoStream = function (server, req, res, queryData) {
 			sendImmediately: false
 		}
 	}).on('error', function (error) {
-		console.log('STREAM ERROR: ' + error.code);
+		console.log('[Error] Can\'t stream! \n\tLink: ' + link + '\n\tCode: ' + error.code);
 		//res.write(500, "Unknown error");
 		res.end();
 		return;
@@ -134,10 +122,9 @@ PrintVideoLayout = function (server, req, res) {
 			PrintMenu(res);
 
 			//console.log(body);
-			console.log('Success got data from ' + server.host);
 			var camData = libxml.parseXmlString(body);
 			var cams = camData.find('//camera');
-			console.log(`Got ${cams.length} elements`);
+			console.log(`[Info] Loaded ${cams.length} cams from ${server.host}`);
 
 			for (var i = 0; i < cams.length; i++) {
 				res.write('<div class="block-frame">\n' +
@@ -170,7 +157,7 @@ http.createServer(function (req, res) {
 	});
 
 	var reqPath = url.parse(req.url).pathname.substr(1);
-	//console.log('> Requested: ' + req.url);
+	//console.log('[Info] Requested ' + req.url);
 
 	fs.lstat(reqPath, function (err, stats) {
 		if (err || reqPath == '.') {

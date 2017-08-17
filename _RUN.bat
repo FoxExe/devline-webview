@@ -17,7 +17,6 @@ popd
 endlocal
 
 start htttp://localhost/
-
 :RUNAPP
 node app.js
 goto RUNAPP
